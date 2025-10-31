@@ -1,0 +1,7 @@
+html{scroll-behavior:smooth}
+.nav-link{position:relative}
+.nav-link:after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:currentColor;transition:width .25s ease}
+.nav-link:hover:after{width:100%}
+.card{transition:transform .25s ease,box-shadow .25s ease}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.12)}
+.glass{backdrop-filter:saturate(180%) blur(10px)}
