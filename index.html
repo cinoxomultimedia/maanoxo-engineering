@@ -48,7 +48,7 @@
     <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
       <p class="opacity-90">Precision you can trust • Genuine brands • Fast quotations</p>
       <div class="flex gap-4">
-        <a href="tel:+918956317468" class="hover:underline">Call: +91‑89563‑17468</a>
+        <a href="tel:+918956317466" class="hover:underline">Call: +91‑89563‑17466</a>
         <a href="https://wa.me/918956317466?text=Hello%20Maanoxo%20Engineering%2C%20I%27m%20interested%20in%20precision%20tools." target="_blank" rel="noopener" class="hover:underline">WhatsApp: +91‑89563‑17466</a>
       </div>
     </div>
@@ -71,8 +71,9 @@
         <li><a class="nav-link hover:text-brandBlue" href="#contact">Contact</a></li>
       </ul>
       <!-- Product Search -->
-<form class="hidden md:flex items-center gap-2 w-full max-w-md ml-auto" onsubmit="return false;">
- <!-- Search icon + hidden search bar -->
+<!-- Product Search -->
+<form id="productSearchForm" class="hidden md:flex items-center gap-2 w-full max-w-md ml-auto" onsubmit="return false;">
+  <!-- Search icon + hidden search bar -->
 <div class="relative ml-auto" id="searchContainer">
   <!-- Search icon -->
   <button id="searchIcon" class="p-2 rounded-full hover:bg-slate-100" aria-label="Search">
@@ -134,7 +135,7 @@
 
   <!-- Brands -->
   <section id="brands" class="py-14 bg-slate-50">
-    <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4" id="brandGrid">
+   <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4" id="brandGrid">
   <a href="?brand=Mitutoyo#products" class="bg-white rounded-xl border border-slate-200 p-4 grid place-items-center hover:border-brandBlue font-semibold" data-brand="Mitutoyo">Mitutoyo</a>
   <a href="?brand=Insize#products" class="bg-white rounded-xl border border-slate-200 p-4 grid place-items-center hover:border-brandBlue font-semibold" data-brand="Insize">Insize</a>
   <a href="?brand=HI-Mezer#products" class="bg-white rounded-xl border border-slate-200 p-4 grid place-items-center hover:border-brandBlue font-semibold" data-brand="HI-Mezer">HI-Mezer</a>
@@ -146,17 +147,17 @@
   </section>
 
   <!-- Products -->
-  <section id="products" class="py-16">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="flex items-end justify-between gap-4">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Featured Products</h2>
-          <p class="mt-2 text-slate-600">Ask for model‑wise quotations — genuine, calibrated & ready.</p>
-        </div>
-        <a href="#contact" class="hidden md:inline-block text-sm font-semibold text-brandBlue nav-link">Need bulk pricing? Contact →</a>
+<section id="products" class="py-16">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Featured Products</h2>
+        <p class="mt-2 text-slate-600">Ask for model-wise quotations — genuine, calibrated & ready.</p>
       </div>
+      <a href="#contact" class="hidden md:inline-block text-sm font-semibold text-brandBlue nav-link">Need bulk pricing? Contact →</a>
+    </div>
 
-      <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
   <!-- 1 -->
   <article class="card bg-white border border-slate-200 rounded-2xl overflow-hidden"
@@ -279,11 +280,18 @@
   </article>
 
 </div>
- </div>
+
+
+    </div>
     <p class="mt-3 text-xs text-slate-500">*Prices indicative; request WhatsApp quotation for today’s best price.</p>
   </div>
+</section>
+
+      </div>
+      <p class="mt-3 text-xs text-slate-500">*Prices indicative; request WhatsApp quotation for today’s best price.</p>
+    </div>
   </section>
-  
+
 
   <!-- About & Contact -->
   <section id="about" class="py-16 bg-slate-50">
@@ -343,7 +351,7 @@
       </form>
     </div>
   </section>
-   <!-- Quote Modal -->
+  <!-- Quote Modal -->
 <div id="quoteModal" class="fixed inset-0 z-50 hidden">
   <!-- Backdrop -->
   <div id="quoteBackdrop" class="absolute inset-0 bg-black/50"></div>
@@ -377,11 +385,13 @@
   <a id="quoteFab" href="#" class="fixed bottom-20 right-5 rounded-full shadow-lg bg-brandBlue text-white px-4 py-3 hidden z-40">
   Quote (<span id="quoteCount">0</span>)
 </a>
-  <!-- Tiny Toast for Add/Remove flash -->
+<!-- Tiny Toast for Add/Remove flash -->
 <div id="toast"
      class="fixed bottom-5 right-5 z-50 hidden bg-emerald-600 text-white text-sm px-3 py-2 rounded-lg shadow-lg">
   Added to Quote
 </div>
+
+
 
 
   <!-- Footer -->
