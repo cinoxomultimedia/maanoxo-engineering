@@ -72,19 +72,28 @@
       </ul>
       <!-- Product Search -->
 <form class="hidden md:flex items-center gap-2 w-full max-w-md ml-auto" onsubmit="return false;">
-  <div class="relative flex-1">
-    <input
-      id="productSearch"
-      type="search"
-      placeholder="Search products… (e.g., micrometer, 532-119)"
-      class="w-full rounded-xl border border-slate-300 px-4 py-2 pr-9 outline-none focus:ring-2 focus:ring-brandBlue/40"
-      aria-label="Search products"
-    />
-    <!-- Clear button -->
-    <button type="button" id="clearSearch" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 hidden" aria-label="Clear search">
-      ✕
-    </button>
+ <!-- Search icon + hidden search bar -->
+<div class="relative ml-auto" id="searchContainer">
+  <!-- Search icon -->
+  <button id="searchIcon" class="p-2 rounded-full hover:bg-slate-100" aria-label="Search">
+    🔍
+  </button>
+
+  <!-- Hidden search bar -->
+  <div id="searchBox" class="hidden absolute right-0 top-full mt-2 bg-white border border-slate-300 rounded-xl shadow-lg w-72 p-2">
+    <form id="productSearchForm" onsubmit="return false;">
+      <input
+        id="productSearch"
+        type="search"
+        placeholder="Search product or model…"
+        list="productList"
+        class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-brandBlue/40"
+      />
+      <datalist id="productList"></datalist>
+    </form>
   </div>
+</div>
+
 </form>
 
       <a href="https://wa.me/918956317466?text=Hello%20Maanoxo%2C%20I%20want%20a%20quote" target="_blank" rel="noopener" class="inline-flex items-center gap-2 bg-brandBlue text-white px-4 py-2 rounded-xl shadow hover:shadow-md">WhatsApp Quote</a>
