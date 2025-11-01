@@ -9,14 +9,14 @@ function sendQuery(e){
   window.open(wa, '_blank', 'noopener');
   return false;
 }
-// Search icon show/hide
+// === Navbar search icon -> open box, search to jump/highlight product ===
 document.addEventListener('DOMContentLoaded', () => {
-  const icon = document.getElementById('searchIcon');
-  const box  = document.getElementById('searchBox');
+  const icon  = document.getElementById('searchIcon');
+  const box   = document.getElementById('searchBox');
   const input = document.getElementById('productSearch');
-  const list  = document.getElementById('productList');
+  const dlist = document.getElementById('productList');
 
-  if (!icon || !box || !input) return;
+  if (!icon || !box || !input || !dlist) return;
 
   // Toggle show/hide
   icon.addEventListener('click', () => {
@@ -24,27 +24,49 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!box.classList.contains('hidden')) input.focus();
   });
 
-  // Build product list
-  const cards = document.querySelectorAll('#products article[data-brand]');
-  const items = Array.from(cards).map((card, i) => {
+  // Build product index from cards
+  const cards = Array.from(document.querySelectorAll('#products article[data-brand]')).map((card, i) => {
     const title = card.querySelector('h3')?.textContent?.trim() || `Product ${i+1}`;
     const model = card.dataset.model || '';
     if (!card.id) card.id = `product-${i+1}`;
-    const option = document.createElement('option');
-    option.value = model ? `${title} — ${model}` : title;
-    list.appendChild(option);
-    return { id: card.id, el: card, title, model, text: `${title} ${model}`.toLowerCase() };
+    // datalist option
+    const opt = document.createElement('option');
+    opt.value = model ? `${title} — ${model}` : title;
+    dlist.appendChild(opt);
+    return {
+      id: card.id,
+      el: card,
+      title,
+      model,
+      text: `${title} ${model}`.toLowerCase()
+    };
   });
 
-  // On submit or enter
-  input.addEventListener('change', () => {
-    const q = input.value.toLowerCase();
-    const match = items.find(p => p.text.includes(q));
-    if (match) {
-      match.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      match.el.classList.add('ring-2','ring-brandBlue');
-      setTimeout(() => match.el.classList.remove('ring-2','ring-brandBlue'), 1500);
-      box.classList.add('hidden'); // hide search after select
+  // Jump to best match (change/select)
+  function jumpToMatch() {
+    const q = input.value.toLowerCase().trim();
+    if (!q) return;
+    // Exact model first
+    let match = cards.find(p => p.model && p.model.toLowerCase() === q)
+             || cards.find(p => p.model && p.model.toLowerCase().includes(q))
+             || cards.find(p => p.text.includes(q));
+    if (!match) return;
+    match.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    match.el.classList.add('ring-2','ring-brandBlue','ring-offset-2','ring-offset-white');
+    setTimeout(() => match.el.classList.remove('ring-2','ring-brandBlue','ring-offset-2','ring-offset-white'), 1500);
+    box.classList.add('hidden');
+  }
+
+  // Enter press via form submit & datalist change
+  document.getElementById('productSearchForm')?.addEventListener('submit', jumpToMatch);
+  input.addEventListener('change', jumpToMatch);
+
+  // Keyboard shortcut: "/" to focus search
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== input) {
+      e.preventDefault(); 
+      box.classList.remove('hidden');
+      input.focus();
     }
   });
 });
@@ -199,4 +221,3 @@ document.addEventListener('DOMContentLoaded', () => {
   // First paint
   updateUI();
 })();
-
