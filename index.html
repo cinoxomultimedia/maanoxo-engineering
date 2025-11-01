@@ -343,6 +343,46 @@
       </form>
     </div>
   </section>
+   <!-- Quote Modal -->
+<div id="quoteModal" class="fixed inset-0 z-50 hidden">
+  <!-- Backdrop -->
+  <div id="quoteBackdrop" class="absolute inset-0 bg-black/50"></div>
+
+  <!-- Panel -->
+  <div class="absolute inset-x-0 bottom-0 md:inset-0 md:grid md:place-items-center">
+    <div class="bg-white md:rounded-2xl md:w-[680px] w-full max-h-[80vh] overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between px-5 py-3 border-b">
+        <h3 class="text-lg font-extrabold">Quote List</h3>
+        <div class="flex items-center gap-2">
+          <button id="quoteClear" class="text-sm px-3 py-1.5 border rounded-lg hover:bg-slate-50">Clear all</button>
+          <button id="quoteClose" class="text-xl leading-none px-2">✕</button>
+        </div>
+      </div>
+
+      <div id="quoteBody" class="p-4 overflow-y-auto">
+        <!-- items will render here -->
+      </div>
+
+      <div class="px-5 py-3 border-t flex items-center justify-between gap-3">
+        <p id="quoteHint" class="text-sm text-slate-600">Review items, remove if needed, then send on WhatsApp.</p>
+        <a id="quoteSend"
+           class="bg-brandBlue text-white px-4 py-2 rounded-xl font-semibold inline-flex items-center gap-2">
+          Send on WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <a id="quoteFab" href="#" class="fixed bottom-20 right-5 rounded-full shadow-lg bg-brandBlue text-white px-4 py-3 hidden z-40">
+  Quote (<span id="quoteCount">0</span>)
+</a>
+  <!-- Tiny Toast for Add/Remove flash -->
+<div id="toast"
+     class="fixed bottom-5 right-5 z-50 hidden bg-emerald-600 text-white text-sm px-3 py-2 rounded-lg shadow-lg">
+  Added to Quote
+</div>
+
 
   <!-- Footer -->
   <footer class="border-t border-slate-200">
