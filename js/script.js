@@ -1,77 +1,183 @@
 document.getElementById('year').textContent = new Date().getFullYear();
+let siteContact = null; // Store contact info globally for form submission
+
 function sendQuery(e){
   e.preventDefault();
   const name = encodeURIComponent(document.getElementById('name').value.trim());
   const phone = encodeURIComponent(document.getElementById('phone').value.trim());
   const msg = encodeURIComponent(document.getElementById('msg').value.trim());
   const text = `Name: ${name}%0AContact: ${phone}%0ARequest: ${msg}`;
-  const wa = `https://wa.me/918956317468?text=${text}`;
+  const waNum = (siteContact && siteContact.contacts[1]) ? siteContact.contacts[1].wa : '918956317468';
+  const wa = `https://wa.me/${waNum}?text=${text}`;
   window.open(wa, '_blank', 'noopener');
   return false;
 }
-// === Navbar search icon -> open box, search to jump/highlight product ===
-document.addEventListener('DOMContentLoaded', () => {
+
+// === MAIN INITIALIZATION ===
+document.addEventListener('DOMContentLoaded', async () => {
+  
+  // 1. FETCH & RENDER ALL SITE CONTENT
+  try {
+    const [productsRes, brandsRes, aboutRes, contactRes] = await Promise.all([
+      fetch('products.json'),
+      fetch('brands.json'),
+      fetch('about.json'),
+      fetch('contact.json')
+    ]);
+
+    // Products
+    const products = await productsRes.json();
+    const grid = document.getElementById('product-grid');
+    const dataList = document.getElementById('productList');
+
+    if (grid) {
+      grid.innerHTML = products.map(p => `
+        <article class="card bg-white border border-slate-200 rounded-2xl overflow-hidden"
+          data-brand="${p.brand}" data-model="${p.model}" data-keywords="${p.keywords}">
+          <img src="${p.image}" alt="${p.title}" class="w-full aspect-[4/3] object-cover">
+          <div class="p-5">
+            <h3 class="font-bold">${p.title}</h3>
+            <p class="text-sm text-slate-600 mt-1">${p.description}</p>
+            <div class="mt-4 flex items-center justify-between gap-2">
+              <span class="font-extrabold text-brandBlue" data-price="${p.price}">${p.priceDisplay}</span>
+              <div class="flex items-center gap-2">
+                <button class="add-to-quote text-sm font-semibold text-brandBlue border border-brandBlue px-3 py-2 rounded-lg"
+                        data-title="${p.title}" data-model="${p.model}">Add to Quote</button>
+                <a href="https://wa.me/918956317466?text=Quote%20request%3A%20${encodeURIComponent(p.title)}%20(${p.model})"
+                   target="_blank" rel="noopener"
+                   class="text-sm font-semibold text-white bg-brandBlue px-3 py-2 rounded-lg">Get Quote</a>
+              </div>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    if(dataList) {
+      dataList.innerHTML = products.map(p => `<option value="${p.title} (${p.model})">`).join('');
+    }
+  } catch (err) {
+    console.error('Error loading site content:', err);
+  }
+
+  // Brands
+  try {
+    const brandsRes = await fetch('brands.json');
+    const brands = await brandsRes.json();
+    const brandGrid = document.getElementById('brandGrid');
+    if (brandGrid) {
+      brandGrid.innerHTML = brands.map(brand => `
+        <a href="?brand=${encodeURIComponent(brand.name)}#products" class="bg-white rounded-xl border border-slate-200 p-4 grid place-items-center hover:border-brandBlue font-semibold" data-brand="${brand.name}">${brand.name}</a>
+      `).join('');
+    }
+
+    // About
+    const aboutRes = await fetch('about.json');
+    const about = await aboutRes.json();
+    document.getElementById('about-title').textContent = about.title;
+    document.getElementById('about-description').textContent = about.description;
+    document.getElementById('about-features').innerHTML = about.features.map(feat => `<li>• ${feat}</li>`).join('');
+
+    // Contact
+    const contactRes = await fetch('contact.json');
+    const contact = await contactRes.json();
+    siteContact = contact; // Save for global usage
+
+    const primary = contact.contacts[0];
+    const secondary = contact.contacts[1];
+
+    // 1. Header Strip
+    const hCall = document.getElementById('header-call');
+    const hWa = document.getElementById('header-wa');
+    if(hCall) { hCall.textContent = `Call: ${primary.label}`; hCall.href = `tel:${primary.tel}`; }
+    if(hWa) { hWa.textContent = `WhatsApp: ${primary.label}`; hWa.href = `https://wa.me/${primary.wa}?text=Hello`; }
+
+    // 2. Navbar & Floating
+    const navWa = document.getElementById('nav-wa');
+    const floatWa = document.getElementById('float-wa');
+    if(navWa) navWa.href = `https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%20want%20a%20quote`;
+    if(floatWa) floatWa.href = `https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%27d%20like%20to%20discuss%20tools.`;
+
+    // 3. About Section
+    document.getElementById('contact-office').textContent = contact.office;
+    document.getElementById('contact-gst').textContent = contact.gst;
+    document.getElementById('contact-call').innerHTML = contact.contacts.map(c => 
+      `<a class="text-brandBlue nav-link" href="tel:${c.tel}">${c.label}</a>`
+    ).join(' / ');
+    const aboutWa = document.getElementById('about-wa');
+    if(aboutWa) aboutWa.href = `https://wa.me/${secondary.wa}?text=Hello%20Maanoxo%2C%20please%20share%20your%20latest%20price%20list.`;
+
+    // 4. Contact Section Buttons
+    const btnContainer = document.getElementById('contact-wa-buttons');
+    if(btnContainer) {
+      btnContainer.innerHTML = `
+        <a href="https://wa.me/${secondary.wa}?text=Hello%20Maanoxo%2C%20I%20need%20a%20quote." target="_blank" rel="noopener" class="bg-brandYellow text-slate-900 font-semibold px-5 py-3 rounded-xl shadow">WhatsApp ${secondary.label}</a>
+        <a href="https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%20need%20a%20quote." target="_blank" rel="noopener" class="bg-white/10 border border-white/20 px-5 py-3 rounded-xl">WhatsApp ${primary.label}</a>
+      `;
+    }
+
+  } catch (err) {
+    console.error('Error loading page details:', err);
+  }
+  
+  // 2. SEARCH LOGIC (Initialized after render)
   const icon  = document.getElementById('searchIcon');
   const box   = document.getElementById('searchBox');
   const input = document.getElementById('productSearch');
   const dlist = document.getElementById('productList');
 
-  if (!icon || !box || !input || !dlist) return;
+  if (icon && box && input && dlist) {
+    // Toggle show/hide
+    icon.addEventListener('click', () => {
+      box.classList.toggle('hidden');
+      if (!box.classList.contains('hidden')) input.focus();
+    });
 
-  // Toggle show/hide
-  icon.addEventListener('click', () => {
-    box.classList.toggle('hidden');
-    if (!box.classList.contains('hidden')) input.focus();
-  });
+    // Build product index from cards
+    const cards = Array.from(document.querySelectorAll('#products article[data-brand]')).map((card, i) => {
+      const title = card.querySelector('h3')?.textContent?.trim() || `Product ${i+1}`;
+      const model = card.dataset.model || '';
+      if (!card.id) card.id = `product-${i+1}`;
+      // Note: datalist options already populated during render
+      return {
+        id: card.id,
+        el: card,
+        title,
+        model,
+        text: `${title} ${model}`.toLowerCase()
+      };
+    });
 
-  // Build product index from cards
-  const cards = Array.from(document.querySelectorAll('#products article[data-brand]')).map((card, i) => {
-    const title = card.querySelector('h3')?.textContent?.trim() || `Product ${i+1}`;
-    const model = card.dataset.model || '';
-    if (!card.id) card.id = `product-${i+1}`;
-    // datalist option
-    const opt = document.createElement('option');
-    opt.value = model ? `${title} — ${model}` : title;
-    dlist.appendChild(opt);
-    return {
-      id: card.id,
-      el: card,
-      title,
-      model,
-      text: `${title} ${model}`.toLowerCase()
-    };
-  });
+    // Jump to best match (change/select)
+    function jumpToMatch() {
+      const q = input.value.toLowerCase().trim();
+      if (!q) return;
+      // Exact model first
+      let match = cards.find(p => p.model && p.model.toLowerCase() === q)
+               || cards.find(p => p.model && p.model.toLowerCase().includes(q))
+               || cards.find(p => p.text.includes(q));
+      if (!match) return;
+      match.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      match.el.classList.add('ring-2','ring-brandBlue','ring-offset-2','ring-offset-white');
+      setTimeout(() => match.el.classList.remove('ring-2','ring-brandBlue','ring-offset-2','ring-offset-white'), 1500);
+      box.classList.add('hidden');
+    }
 
-  // Jump to best match (change/select)
-  function jumpToMatch() {
-    const q = input.value.toLowerCase().trim();
-    if (!q) return;
-    // Exact model first
-    let match = cards.find(p => p.model && p.model.toLowerCase() === q)
-             || cards.find(p => p.model && p.model.toLowerCase().includes(q))
-             || cards.find(p => p.text.includes(q));
-    if (!match) return;
-    match.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    match.el.classList.add('ring-2','ring-brandBlue','ring-offset-2','ring-offset-white');
-    setTimeout(() => match.el.classList.remove('ring-2','ring-brandBlue','ring-offset-2','ring-offset-white'), 1500);
-    box.classList.add('hidden');
+    // Enter press via form submit & datalist change
+    document.getElementById('productSearchForm')?.addEventListener('submit', jumpToMatch);
+    input.addEventListener('change', jumpToMatch);
+
+    // Keyboard shortcut: "/" to focus search
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== input) {
+        e.preventDefault(); 
+        box.classList.remove('hidden');
+        input.focus();
+      }
+    });
   }
 
-  // Enter press via form submit & datalist change
-  document.getElementById('productSearchForm')?.addEventListener('submit', jumpToMatch);
-  input.addEventListener('change', jumpToMatch);
-
-  // Keyboard shortcut: "/" to focus search
-  document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && document.activeElement !== input) {
-      e.preventDefault(); 
-      box.classList.remove('hidden');
-      input.focus();
-    }
-  });
-});
-// === Quote Basket with Delete / Clear / Toggle + FLASH FEEDBACK ===
-(function(){
+  // 3. QUOTE BASKET LOGIC
   const KEY='quoteItems';
   const fab = document.getElementById('quoteFab');
   const countEl = document.getElementById('quoteCount');
@@ -138,13 +244,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.add-to-quote').forEach(btn=>{
       const t = btn.dataset.title||''; const m = btn.dataset.model||'';
       const selected = inList(items,t,m) > -1;
-      btn.textContent = selected ? 'Remove' : 'Add to Quote';
-      btn.classList.toggle('text-brandBlue', !selected);
-      btn.classList.toggle('border-brandBlue', !selected);
-      btn.classList.toggle('text-rose-700', selected);
-      btn.classList.toggle('border-rose-600', selected);
-      // Ensure previous success classes cleared
-      btn.classList.remove('text-emerald-700','border-emerald-600','text-slate-700','border-slate-400');
+      // Only update if not in a transition state (disabled)
+      if(!btn.disabled) {
+        btn.textContent = selected ? 'Remove' : 'Add to Quote';
+        btn.classList.toggle('text-brandBlue', !selected);
+        btn.classList.toggle('border-brandBlue', !selected);
+        btn.classList.toggle('text-rose-700', selected);
+        btn.classList.toggle('border-rose-600', selected);
+        btn.classList.remove('text-emerald-700','border-emerald-600','text-slate-700','border-slate-400');
+      }
     });
     if (!modal?.classList.contains('hidden')) renderModal();
   }
@@ -178,9 +286,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function openModal(){ modal?.classList.remove('hidden'); renderModal(); }
   function closeModal(){ modal?.classList.add('hidden'); }
 
-  // Toggle add/remove on product buttons + FLASH
-  document.querySelectorAll('.add-to-quote').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+  // Event Delegation for Add to Quote (since buttons are dynamic)
+  document.getElementById('product-grid')?.addEventListener('click', (e) => {
+    if(e.target.classList.contains('add-to-quote')) {
+      const btn = e.target;
       const title = btn.dataset.title||''; const model = btn.dataset.model||'';
       const items = load();
       const idx = inList(items, title, model);
@@ -193,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setBtnRemoved(btn);
         showToast(`${title}${model?` (${model})`:''} removed`, 'rose');
       }
-    });
+    }
   });
 
   // FAB + modal controls
@@ -220,4 +329,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // First paint
   updateUI();
-})();
+});

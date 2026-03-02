@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            height: 100vh;
+            background-color: #343a40;
+            color: white;
+            position: fixed;
+            width: 250px;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #adb5bd;
+            text-decoration: none;
+            padding: 15px 20px;
+            display: block;
+            transition: 0.3s;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #495057;
+            color: white;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        .card-counter {
+            box-shadow: 2px 2px 10px #DADADA;
+            margin: 5px;
+            padding: 20px 10px;
+            background-color: #fff;
+            height: 100px;
+            border-radius: 5px;
+            transition: .3s linear all;
+        }
+        .card-counter:hover {
+            box-shadow: 4px 4px 20px #DADADA;
+            transform: scale(1.02);
+        }
+        .card-counter i {
+            font-size: 5em;
+            opacity: 0.2;
+        }
+        /* Utility to hide sections */
+        .section-view {
+            display: none;
+        }
+        .section-view.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h3 class="text-center mb-4">Admin Panel</h3>
+        <a href="#" onclick="showSection('dashboard')" id="nav-dashboard" class="active"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
+        <a href="#" onclick="showSection('products')" id="nav-products"><i class="fas fa-box me-2"></i> Products</a>
+        <a href="#" onclick="showSection('brands')" id="nav-brands"><i class="fas fa-tags me-2"></i> Brands</a>
+        <a href="#" onclick="showSection('about')" id="nav-about"><i class="fas fa-info-circle me-2"></i> About Content</a>
+        <a href="#" onclick="showSection('contact')" id="nav-contact"><i class="fas fa-address-card me-2"></i> Contact Details</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        
+        <!-- DASHBOARD SECTION -->
+        <div id="dashboard" class="section-view active">
+            <h2>Dashboard</h2>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card-counter border-start border-primary border-5 d-flex justify-content-between align-items-center px-4">
+                        <div>
+                            <h3 id="dash-product-count">0</h3>
+                            <span class="text-muted">Total Products</span>
+                        </div>
+                        <i class="fas fa-box text-primary"></i>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-counter border-start border-success border-5 d-flex justify-content-between align-items-center px-4">
+                        <div>
+                            <h3 id="dash-brand-count">0</h3>
+                            <span class="text-muted">Total Brands</span>
+                        </div>
+                        <i class="fas fa-tags text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRODUCTS SECTION -->
+        <div id="products" class="section-view">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Manage Products</h2>
+                <button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Brand</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-table-body">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BRANDS SECTION -->
+        <div id="brands" class="section-view">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Manage Brands</h2>
+                <button class="btn btn-primary" onclick="openBrandModal()"><i class="fas fa-plus"></i> Add Brand</button>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Brand Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="brand-table-body">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABOUT SECTION -->
+        <div id="about" class="section-view">
+            <h2>Edit About Us</h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <form onsubmit="saveAbout(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Page Title</label>
+                            <input type="text" class="form-control" id="about-title" value="About Our Company">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="about-desc" rows="6">We are a leading company in the industry...</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Features (One per line)</label>
+                            <textarea class="form-control" id="about-features" rows="4"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">Save & Download JSON</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACT SECTION -->
+        <div id="contact" class="section-view">
+            <h2>Edit Contact Details</h2>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <form onsubmit="saveContact(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Office Address</label>
+                            <input type="text" class="form-control" id="contact-office">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">GST Number</label>
+                            <input type="text" class="form-control" id="contact-gst">
+                        </div>
+                        <hr>
+                        <h5>Phone Numbers</h5>
+                        <div id="contact-phones-container">
+                            <!-- Dynamic inputs -->
+                        </div>
+                        <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="addPhoneField()">+ Add Phone</button>
+                        <br>
+                        <button type="submit" class="btn btn-success">Save & Download JSON</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SHARED MODAL (Used for Products and Brands) -->
+    <div class="modal fade" id="genericModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Edit Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="modalForm">
+                        <!-- Dynamic Fields injected here -->
+                        <div id="modalFields"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="modalSaveBtn">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- MOCK DATA ---
+        let products = [];
+        let brands = [];
+        let aboutData = {};
+        let contactData = {};
+
+        // --- NAVIGATION LOGIC ---
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+            // Show target section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update Sidebar Active State
+            document.querySelectorAll('.sidebar a').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + sectionId).classList.add('active');
+
+            // Refresh data if needed
+            if(sectionId === 'dashboard') updateDashboard();
+        }
+
+        // --- RENDER FUNCTIONS ---
+
+        function updateDashboard() {
+            document.getElementById('dash-product-count').innerText = products.length;
+            document.getElementById('dash-brand-count').innerText = brands.length;
+        }
+
+        function renderProducts() {
+            const tbody = document.getElementById('product-table-body');
+            tbody.innerHTML = '';
+            products.forEach((p, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${p.title}</td>
+                        <td>$${p.price}</td>
+                        <td>${p.brand}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editProduct(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProduct(${index})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            updateDashboard();
+        }
+
+        function renderBrands() {
+            const tbody = document.getElementById('brand-table-body');
+            tbody.innerHTML = '';
+            brands.forEach((b, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${b.name}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editBrand(${index})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteBrand(${index})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            updateDashboard();
+        }
+
+        function renderAbout() {
+            document.getElementById('about-title').value = aboutData.title || '';
+            document.getElementById('about-desc').value = aboutData.description || '';
+            document.getElementById('about-features').value = (aboutData.features || []).join('\n');
+        }
+
+        function renderContact() {
+            document.getElementById('contact-office').value = contactData.office || '';
+            document.getElementById('contact-gst').value = contactData.gst || '';
+            
+            const container = document.getElementById('contact-phones-container');
+            container.innerHTML = '';
+            (contactData.contacts || []).forEach((c, i) => {
+                addPhoneField(c.label, c.tel, c.wa);
+            });
+        }
+
+        function addPhoneField(label='', tel='', wa='') {
+            const container = document.getElementById('contact-phones-container');
+            const div = document.createElement('div');
+            div.className = 'row mb-2 phone-row';
+            div.innerHTML = `
+                <div class="col-4"><input type="text" placeholder="Label (e.g. +91...)" class="form-control p-label" value="${label}"></div>
+                <div class="col-4"><input type="text" placeholder="Tel (e.g. +918...)" class="form-control p-tel" value="${tel}"></div>
+                <div class="col-3"><input type="text" placeholder="WA (No +)" class="form-control p-wa" value="${wa}"></div>
+                <div class="col-1"><button type="button" class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">x</button></div>
+            `;
+            container.appendChild(div);
+        }
+
+        // --- CRUD ACTIONS (PRODUCTS) ---
+
+        function deleteProduct(index) {
+            if(confirm('Are you sure?')) {
+                products.splice(index, 1);
+                downloadJSON(products, 'products.json');
+                renderProducts();
+            }
+        }
+
+        function openProductModal(id = null) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalFields = document.getElementById('modalFields');
+            const saveBtn = document.getElementById('modalSaveBtn');
+            const isEdit = id !== null;
+            
+            const product = isEdit ? products[id] : { title: '', price: '', brand: '', model: '', description: '' };
+
+            modalTitle.innerText = isEdit ? 'Edit Product' : 'Add Product';
+            
+            modalFields.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-control" id="p-title" value="${product.title || ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Price</label>
+                    <input type="number" class="form-control" id="p-price" value="${product.price || ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Brand</label>
+                    <input type="text" class="form-control" id="p-brand" value="${product.brand || ''}">
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('genericModal'));
+            modal.show();
+
+            saveBtn.onclick = function() {
+                const title = document.getElementById('p-title').value;
+                const price = document.getElementById('p-price').value;
+                const brand = document.getElementById('p-brand').value;
+
+                const newObj = {
+                    ...product,
+                    title, price, brand,
+                    priceDisplay: `₹${Number(price).toLocaleString()}`
+                };
+
+                if(isEdit) {
+                    products[id] = newObj;
+                } else {
+                    products.push(newObj);
+                }
+                downloadJSON(products, 'products.json');
+                renderProducts();
+                modal.hide();
+            };
+        }
+
+        function editProduct(id) {
+            openProductModal(id);
+        }
+
+        // --- CRUD ACTIONS (BRANDS) ---
+
+        function deleteBrand(index) {
+            if(confirm('Delete this brand?')) {
+                brands.splice(index, 1);
+                downloadJSON(brands, 'brands.json');
+                renderBrands();
+            }
+        }
+
+        function openBrandModal(id = null) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalFields = document.getElementById('modalFields');
+            const saveBtn = document.getElementById('modalSaveBtn');
+            const isEdit = id !== null;
+            
+            const brand = isEdit ? brands[id] : { name: '' };
+
+            modalTitle.innerText = isEdit ? 'Edit Brand' : 'Add Brand';
+            
+            modalFields.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Brand Name</label>
+                    <input type="text" class="form-control" id="b-name" value="${brand.name || ''}">
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('genericModal'));
+            modal.show();
+
+            saveBtn.onclick = function() {
+                const name = document.getElementById('b-name').value;
+
+                if(isEdit) {
+                    brands[id] = { name };
+                } else {
+                    brands.push({ name });
+                }
+                downloadJSON(brands, 'brands.json');
+                renderBrands();
+                modal.hide();
+            };
+        }
+
+        function editBrand(id) {
+            openBrandModal(id);
+        }
+
+        // --- ACTIONS (ABOUT & CONTACT) ---
+
+        function saveAbout(e) {
+            e.preventDefault();
+            aboutData.title = document.getElementById('about-title').value;
+            aboutData.description = document.getElementById('about-desc').value;
+            aboutData.features = document.getElementById('about-features').value.split('\n').filter(line => line.trim() !== '');
+            
+            downloadJSON(aboutData, 'about.json');
+            alert("Updated! A download has started with the new JSON file.");
+        }
+
+        function saveContact(e) {
+            e.preventDefault();
+            contactData.office = document.getElementById('contact-office').value;
+            contactData.gst = document.getElementById('contact-gst').value;
+            
+            const rows = document.querySelectorAll('.phone-row');
+            contactData.contacts = Array.from(rows).map(row => ({
+                label: row.querySelector('.p-label').value,
+                tel: row.querySelector('.p-tel').value,
+                wa: row.querySelector('.p-wa').value
+            }));
+
+            downloadJSON(contactData, 'contact.json');
+            alert("Updated! A download has started with the new JSON file.");
+        }
+
+        // --- UTILS ---
+        function downloadJSON(data, filename) {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", filename);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const [pRes, bRes, aRes, cRes] = await Promise.all([
+                    fetch('products.json'),
+                    fetch('brands.json'),
+                    fetch('about.json'),
+                    fetch('contact.json')
+                ]);
+
+                products = await pRes.json();
+                brands = await bRes.json();
+                aboutData = await aRes.json();
+                contactData = await cRes.json();
+
+                renderProducts();
+                renderBrands();
+                renderAbout();
+                renderContact();
+                updateDashboard();
+            } catch (err) {
+                console.error("Error loading JSON data:", err);
+                alert("Could not load JSON files. Ensure you are running this on a local server (e.g. Live Server).");
+            }
+        });
+
+    </script>
+</body>
+</html>
