@@ -7,7 +7,7 @@ function sendQuery(e){
   const phone = encodeURIComponent(document.getElementById('phone').value.trim());
   const msg = encodeURIComponent(document.getElementById('msg').value.trim());
   const text = `Name: ${name}%0AContact: ${phone}%0ARequest: ${msg}`;
-  const waNum = (siteContact && siteContact.contacts[1]) ? siteContact.contacts[1].wa : '918956317468';
+  const waNum = (siteContact && siteContact.contacts && siteContact.contacts.length > 1) ? siteContact.contacts[1].wa : '918956317468';
   const wa = `https://wa.me/${waNum}?text=${text}`;
   window.open(wa, '_blank', 'noopener');
   return false;
@@ -19,31 +19,43 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 1. FETCH & RENDER ALL SITE CONTENT
   try {
     const [productsRes, brandsRes, aboutRes, contactRes] = await Promise.all([
-      fetch('products.json'),
-      fetch('brands.json'),
-      fetch('about.json'),
-      fetch('contact.json')
+      fetch(`${API_BASE_URL}/api/products`),
+      fetch(`${API_BASE_URL}/api/brands`),
+      fetch(`${API_BASE_URL}/api/about`),
+      fetch(`${API_BASE_URL}/api/contact`)
     ]);
+
+    if (!productsRes.ok || !brandsRes.ok || !aboutRes.ok || !contactRes.ok) {
+        throw new Error('Failed to fetch one or more resources from the API.');
+    }
 
     // Products
     const products = await productsRes.json();
+    const brands = await brandsRes.json();
+    const about = await aboutRes.json();
+    const contact = await contactRes.json();
+    siteContact = contact; // Save for global usage
+
+    console.log('Fetched Products:', products);
+
+
     const grid = document.getElementById('product-grid');
     const dataList = document.getElementById('productList');
 
     if (grid) {
       grid.innerHTML = products.map(p => `
         <article class="card bg-white border border-slate-200 rounded-2xl overflow-hidden"
-          data-brand="${p.brand}" data-model="${p.model}" data-keywords="${p.keywords}">
+          data-brand="${p.brand}" data-model="${p.model}" data-keywords="${p.keywords || ''}">
           <img src="${p.image}" alt="${p.title}" class="w-full aspect-[4/3] object-cover">
           <div class="p-5">
             <h3 class="font-bold">${p.title}</h3>
             <p class="text-sm text-slate-600 mt-1">${p.description}</p>
             <div class="mt-4 flex items-center justify-between gap-2">
-              <span class="font-extrabold text-brandBlue" data-price="${p.price}">${p.priceDisplay}</span>
+              <span class="font-extrabold text-brandBlue" data-price="${p.price}">${p.priceDisplay || `₹${p.price}`}</span>
               <div class="flex items-center gap-2">
                 <button class="add-to-quote text-sm font-semibold text-brandBlue border border-brandBlue px-3 py-2 rounded-lg"
                         data-title="${p.title}" data-model="${p.model}">Add to Quote</button>
-                <a href="https://wa.me/918956317466?text=Quote%20request%3A%20${encodeURIComponent(p.title)}%20(${p.model})"
+                <a href="https://wa.me/${(contact.contacts && contact.contacts.length > 1) ? contact.contacts[1].wa : '918956317466'}?text=Quote%20request%3A%20${encodeURIComponent(p.title)}%20(${p.model})"
                    target="_blank" rel="noopener"
                    class="text-sm font-semibold text-white bg-brandBlue px-3 py-2 rounded-lg">Get Quote</a>
               </div>
@@ -52,18 +64,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         </article>
       `).join('');
     }
-
     if(dataList) {
       dataList.innerHTML = products.map(p => `<option value="${p.title} (${p.model})">`).join('');
     }
-  } catch (err) {
-    console.error('Error loading site content:', err);
-  }
 
-  // Brands
-  try {
-    const brandsRes = await fetch('brands.json');
-    const brands = await brandsRes.json();
+    // Brands
     const brandGrid = document.getElementById('brandGrid');
     if (brandGrid) {
       brandGrid.innerHTML = brands.map(brand => `
@@ -72,52 +77,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // About
-    const aboutRes = await fetch('about.json');
-    const about = await aboutRes.json();
-    document.getElementById('about-title').textContent = about.title;
-    document.getElementById('about-description').textContent = about.description;
-    document.getElementById('about-features').innerHTML = about.features.map(feat => `<li>• ${feat}</li>`).join('');
+    if (about) {
+      document.getElementById('about-title').textContent = about.title;
+      document.getElementById('about-description').textContent = about.description;
+      document.getElementById('about-features').innerHTML = (about.features || []).map(feat => `<li>• ${feat}</li>`).join('');
+    }
 
     // Contact
-    const contactRes = await fetch('contact.json');
-    const contact = await contactRes.json();
-    siteContact = contact; // Save for global usage
+    if (contact && contact.contacts && contact.contacts.length > 0) {
+        const primary = contact.contacts[0];
+        const secondary = contact.contacts.length > 1 ? contact.contacts[1] : primary; // Fallback to primary
 
-    const primary = contact.contacts[0];
-    const secondary = contact.contacts[1];
+        // 1. Header Strip
+        const hCall = document.getElementById('header-call');
+        const hWa = document.getElementById('header-wa');
+        if(hCall) { hCall.textContent = `Call: ${primary.label}`; hCall.href = `tel:${primary.tel}`; }
+        if(hWa) { hWa.textContent = `WhatsApp: ${primary.label}`; hWa.href = `https://wa.me/${primary.wa}?text=Hello`; }
 
-    // 1. Header Strip
-    const hCall = document.getElementById('header-call');
-    const hWa = document.getElementById('header-wa');
-    if(hCall) { hCall.textContent = `Call: ${primary.label}`; hCall.href = `tel:${primary.tel}`; }
-    if(hWa) { hWa.textContent = `WhatsApp: ${primary.label}`; hWa.href = `https://wa.me/${primary.wa}?text=Hello`; }
+        // 2. Navbar & Floating
+        const navWa = document.getElementById('nav-wa');
+        const floatWa = document.getElementById('float-wa');
+        if(navWa) navWa.href = `https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%20want%20a%20quote`;
+        if(floatWa) floatWa.href = `https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%27d%20like%20to%20discuss%20tools.`;
 
-    // 2. Navbar & Floating
-    const navWa = document.getElementById('nav-wa');
-    const floatWa = document.getElementById('float-wa');
-    if(navWa) navWa.href = `https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%20want%20a%20quote`;
-    if(floatWa) floatWa.href = `https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%27d%20like%20to%20discuss%20tools.`;
+        // 3. About Section
+        document.getElementById('contact-office').textContent = contact.office;
+        document.getElementById('contact-gst').textContent = contact.gst;
+        document.getElementById('contact-call').innerHTML = contact.contacts.map(c => 
+          `<a class="text-brandBlue nav-link" href="tel:${c.tel}">${c.label}</a>`
+        ).join(' / ');
+        const aboutWa = document.getElementById('about-wa');
+        if(aboutWa) aboutWa.href = `https://wa.me/${secondary.wa}?text=Hello%20Maanoxo%2C%20please%20share%20your%20latest%20price%20list.`;
 
-    // 3. About Section
-    document.getElementById('contact-office').textContent = contact.office;
-    document.getElementById('contact-gst').textContent = contact.gst;
-    document.getElementById('contact-call').innerHTML = contact.contacts.map(c => 
-      `<a class="text-brandBlue nav-link" href="tel:${c.tel}">${c.label}</a>`
-    ).join(' / ');
-    const aboutWa = document.getElementById('about-wa');
-    if(aboutWa) aboutWa.href = `https://wa.me/${secondary.wa}?text=Hello%20Maanoxo%2C%20please%20share%20your%20latest%20price%20list.`;
-
-    // 4. Contact Section Buttons
-    const btnContainer = document.getElementById('contact-wa-buttons');
-    if(btnContainer) {
-      btnContainer.innerHTML = `
-        <a href="https://wa.me/${secondary.wa}?text=Hello%20Maanoxo%2C%20I%20need%20a%20quote." target="_blank" rel="noopener" class="bg-brandYellow text-slate-900 font-semibold px-5 py-3 rounded-xl shadow">WhatsApp ${secondary.label}</a>
-        <a href="https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%20need%20a%20quote." target="_blank" rel="noopener" class="bg-white/10 border border-white/20 px-5 py-3 rounded-xl">WhatsApp ${primary.label}</a>
-      `;
+        // 4. Contact Section Buttons
+        const btnContainer = document.getElementById('contact-wa-buttons');
+        if(btnContainer) {
+          btnContainer.innerHTML = `
+            <a href="https://wa.me/${secondary.wa}?text=Hello%20Maanoxo%2C%20I%20need%20a%20quote." target="_blank" rel="noopener" class="bg-brandYellow text-slate-900 font-semibold px-5 py-3 rounded-xl shadow">WhatsApp ${secondary.label}</a>
+            <a href="https://wa.me/${primary.wa}?text=Hello%20Maanoxo%2C%20I%20need%20a%20quote." target="_blank" rel="noopener" class="bg-white/10 border border-white/20 px-5 py-3 rounded-xl">WhatsApp ${primary.label}</a>
+          `;
+        }
     }
 
   } catch (err) {
-    console.error('Error loading page details:', err);
+    console.error('Error loading site content from API:', err);
+    // Optionally, display an error message to the user on the page
   }
   
   // 2. SEARCH LOGIC (Initialized after render)
