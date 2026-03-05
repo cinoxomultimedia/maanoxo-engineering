@@ -70,6 +70,7 @@
         <a href="#" onclick="showSection('dashboard')" id="nav-dashboard" class="active"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a>
         <a href="#" onclick="showSection('products')" id="nav-products"><i class="fas fa-box me-2"></i> Products</a>
         <a href="#" onclick="showSection('brands')" id="nav-brands"><i class="fas fa-tags me-2"></i> Brands</a>
+        <a href="#" onclick="showSection('blogs')" id="nav-blogs"><i class="fas fa-newspaper me-2"></i> Blog</a>
         <a href="#" onclick="showSection('about')" id="nav-about"><i class="fas fa-info-circle me-2"></i> About Content</a>
         <a href="#" onclick="showSection('contact')" id="nav-contact"><i class="fas fa-address-card me-2"></i> Contact Details</a>
         <a href="#" onclick="logout()" class="text-danger mt-5"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
@@ -98,6 +99,15 @@
                             <span class="text-muted">Total Brands</span>
                         </div>
                         <i class="fas fa-tags text-success"></i>
+                    </div>
+                </div>
+                <div class="col-md-6 mt-3">
+                    <div class="card-counter border-start border-info border-5 d-flex justify-content-between align-items-center px-4">
+                        <div>
+                            <h3 id="dash-blog-count">0</h3>
+                            <span class="text-muted">Total Blog Posts</span>
+                        </div>
+                        <i class="fas fa-newspaper text-info"></i>
                     </div>
                 </div>
             </div>
@@ -147,6 +157,30 @@
                             </tr>
                         </thead>
                         <tbody id="brand-table-body">
+                            <!-- JS will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOG SECTION -->
+        <div id="blogs" class="section-view">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Manage Blog Posts</h2>
+                <button class="btn btn-primary" onclick="openBlogModal()"><i class="fas fa-plus"></i> Add Post</button>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Title</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="blog-table-body">
                             <!-- JS will populate this -->
                         </tbody>
                     </table>
@@ -237,6 +271,7 @@
         // --- MOCK DATA ---
         let products = [];
         let brands = [];
+        let blogs = [];
         let aboutData = {};
         let contactData = { contacts: [] };
 
@@ -275,6 +310,7 @@
         function updateDashboard() {
             document.getElementById('dash-product-count').innerText = products.length;
             document.getElementById('dash-brand-count').innerText = brands.length;
+            document.getElementById('dash-blog-count').innerText = blogs.length;
         }
 
         function renderProducts() {
@@ -309,6 +345,24 @@
                         <td>
                             <button class="btn btn-sm btn-warning" onclick="editBrand('${b._id}')"><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm btn-danger" onclick="deleteBrand('${b._id}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            updateDashboard();
+        }
+
+        function renderBlogs() {
+            const tbody = document.getElementById('blog-table-body');
+            tbody.innerHTML = '';
+            blogs.forEach((b, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${b.image || 'https://via.placeholder.com/50'}" alt="${b.title}" width="50" height="50" style="object-fit: cover; border-radius: 4px;"></td>
+                        <td>${b.title}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editBlog('${b._id}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteBlog('${b._id}')"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>
                 `;
@@ -534,6 +588,82 @@
             openBrandModal(id);
         }
 
+        // --- CRUD ACTIONS (BLOGS) ---
+
+        async function deleteBlog(id) {
+            if(confirm('Delete this post?')) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/blogs/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('admin_token')}` }
+                    });
+                    if (!response.ok) throw new Error('Failed to delete blog');
+                    blogs = blogs.filter(b => b._id !== id);
+                    renderBlogs();
+                    alert('Post deleted successfully.');
+                } catch (err) {
+                    console.error('Error deleting blog:', err);
+                    alert('Error deleting blog.');
+                }
+            }
+        }
+
+        function openBlogModal(blogId = null) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalFields = document.getElementById('modalFields');
+            const saveBtn = document.getElementById('modalSaveBtn');
+            const isEdit = blogId !== null;
+            
+            const blog = isEdit ? blogs.find(b => b._id === blogId) : { title: '', content: '' };
+            if (isEdit && !blog) return alert('Post not found!');
+
+            modalTitle.innerText = isEdit ? 'Edit Post' : 'Add Post';
+            
+            modalFields.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" class="form-control" id="bl-title" value="${blog.title || ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Content</label>
+                    <textarea class="form-control" id="bl-content" rows="6">${blog.content || ''}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Image URL (Optional)</label>
+                    <input type="text" class="form-control" id="bl-image" value="${blog.image || ''}" placeholder="http://...">
+                </div>
+            `;
+
+            const modal = new bootstrap.Modal(document.getElementById('genericModal'));
+            modal.show();
+
+            saveBtn.onclick = async function() {
+                const data = {
+                    title: document.getElementById('bl-title').value,
+                    content: document.getElementById('bl-content').value,
+                    image: document.getElementById('bl-image').value
+                };
+                const url = isEdit ? `${API_BASE_URL}/api/blogs/${blogId}` : `${API_BASE_URL}/api/blogs`;
+                const method = isEdit ? 'PUT' : 'POST';
+                // ... (Similar fetch logic as brands/products, omitted for brevity but follows same pattern)
+                // For simplicity in this snippet, assuming success:
+                try {
+                    const response = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('admin_token')}` },
+                        body: JSON.stringify(data)
+                    });
+                    if(!response.ok) throw new Error('Failed');
+                    const res = await fetch(`${API_BASE_URL}/api/blogs`);
+                    blogs = await res.json();
+                    renderBlogs();
+                    modal.hide();
+                } catch(e) { alert('Error saving blog'); }
+            };
+        }
+
+        function editBlog(id) { openBlogModal(id); }
+
         async function saveAbout(e) {
             e.preventDefault();
             const data = {
@@ -596,11 +726,12 @@
 
         async function loadData() {
             try {
-                const [pRes, bRes, aRes, cRes] = await Promise.all([
+                const [pRes, bRes, aRes, cRes, blRes] = await Promise.all([
                     fetch(`${API_BASE_URL}/api/products`),
                     fetch(`${API_BASE_URL}/api/brands`),
                     fetch(`${API_BASE_URL}/api/about`),
-                    fetch(`${API_BASE_URL}/api/contact`)
+                    fetch(`${API_BASE_URL}/api/contact`),
+                    fetch(`${API_BASE_URL}/api/blogs`).catch(()=>({ok:true, json:async()=>[]}))
                 ]);
 
                 if (!pRes.ok || !bRes.ok || !aRes.ok || !cRes.ok) {
@@ -611,9 +742,11 @@
                 brands = await bRes.json();
                 aboutData = await aRes.json();
                 contactData = await cRes.json();
+                blogs = await blRes.json();
 
                 renderProducts();
                 renderBrands();
+                renderBlogs();
                 renderAbout();
                 renderContact();
                 updateDashboard();
