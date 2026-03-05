@@ -18,12 +18,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // 1. FETCH & RENDER ALL SITE CONTENT
   try {
-    const [productsRes, brandsRes, aboutRes, contactRes, blogsRes] = await Promise.all([
+    const [productsRes, brandsRes, aboutRes, contactRes] = await Promise.all([
       fetch(`${API_BASE_URL}/api/products`),
       fetch(`${API_BASE_URL}/api/brands`),
       fetch(`${API_BASE_URL}/api/about`),
-      fetch(`${API_BASE_URL}/api/contact`),
-      fetch(`${API_BASE_URL}/api/blogs`).catch(() => ({ ok: true, json: async () => [] })) // Fail gracefully if endpoint missing
+      fetch(`${API_BASE_URL}/api/contact`)
     ]);
 
     if (!productsRes.ok || !brandsRes.ok || !aboutRes.ok || !contactRes.ok) {
@@ -35,7 +34,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const brands = await brandsRes.json();
     const about = await aboutRes.json();
     const contact = await contactRes.json();
-    const blogs = await blogsRes.json();
     siteContact = contact; // Save for global usage
 
     console.log('Fetched Products:', products);
@@ -76,27 +74,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       brandGrid.innerHTML = brands.map(brand => `
         <a href="?brand=${encodeURIComponent(brand.name)}#products" class="bg-white rounded-xl border border-slate-200 p-4 grid place-items-center hover:border-brandBlue font-semibold" data-brand="${brand.name}">${brand.name}</a>
       `).join('');
-    }
-
-    // Blogs (for blog.html)
-    const blogGrid = document.getElementById('blog-grid');
-    if (blogGrid) {
-        if (blogs.length === 0) {
-            blogGrid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500">No articles found.</div>`;
-        } else {
-            blogGrid.innerHTML = blogs.map(b => `
-                <article class="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
-                    <img src="${b.image || 'assets/logo.png'}" alt="${b.title}" class="w-full h-48 object-cover">
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold text-slate-900 mb-2">${b.title}</h3>
-                        <p class="text-slate-600 line-clamp-3">${b.content}</p>
-                        <div class="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-400">
-                            ${new Date(b.createdAt || Date.now()).toLocaleDateString()}
-                        </div>
-                    </div>
-                </article>
-            `).join('');
-        }
     }
 
     // About
