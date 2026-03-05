@@ -31,6 +31,13 @@
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const loginButton = e.submitter;
+            const originalButtonHTML = loginButton.innerHTML;
+
+            // Disable button and show spinner
+            loginButton.disabled = true;
+            loginButton.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Logging In...`;
+
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
@@ -46,6 +53,7 @@
                 if (response.ok && data.token) {
                     localStorage.setItem('admin_token', data.token);
                     window.location.href = 'admin.html';
+                    return; // Exit early on success
                 } else {
                     alert(data.message || 'Login failed');
                 }
@@ -53,6 +61,10 @@
                 console.error('Login error:', err);
                 alert('An error occurred during login.');
             }
+
+            // Restore button on any failure
+            loginButton.disabled = false;
+            loginButton.innerHTML = originalButtonHTML;
         });
     </script>
 </body>
